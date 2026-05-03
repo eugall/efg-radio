@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Raysland and Sano Radio Dashboard</title>
+<title>EuGall Tactical Radio Dashboard</title>
 <link rel="icon" type="image/png" href="https://i.imgur.com/G5iM8qP.png">
 
 <style>
@@ -209,7 +210,7 @@ background-color: #111;
 <div class="channel-id">02</div>
 <div class="active-led"></div>
 </div>
-<div class="station-label">Sano Radio</div>
+<div class="station-label">Love Classic</div>
 <div class="control-group">
 <button class="ctrl-btn play" onclick="playStation(2)">▷</button>
 <button class="ctrl-btn stop" onclick="stopStation(2)">□</button>
@@ -222,7 +223,8 @@ background-color: #111;
 <div class="channel-id">03</div>
 <div class="active-led"></div>
 </div>
-<div class="station-label">Love Classic</div>
+<div class="station-label">Retro Cebu
+</div>
 <div class="control-group">
 <button class="ctrl-btn play" onclick="playStation(3)">▷</button>
 <button class="ctrl-btn stop" onclick="stopStation(3)">□</button>
@@ -235,7 +237,8 @@ background-color: #111;
 <div class="channel-id">04</div>
 <div class="active-led"></div>
 </div>
-<div class="station-label">Retro Cebu</div>
+<div class="station-label">Sano Radio
+</div>
 <div class="control-group">
 <button class="ctrl-btn play" onclick="playStation(4)">▷</button>
 <button class="ctrl-btn stop" onclick="stopStation(4)">□</button>
@@ -248,31 +251,108 @@ background-color: #111;
 <div class="channel-id">05</div>
 <div class="active-led"></div>
 </div>
+
 <div class="station-label">IFM Radio</div>
 <div class="control-group">
 <button class="ctrl-btn play" onclick="playStation(5)">▷</button>
 <button class="ctrl-btn stop" onclick="stopStation(5)">□</button>
 <input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(5, this.value)">
 </div>
+
+</div>
+
+
+<div class="radio-channel" id="channel-6">
+   <div class="channel-id-group">
+	<div class="channel-id">06</div>
+	<div class="active-led"></div>
+   </div>
+
+<div class="station-label">Brigada News FM</div>
+  <div class="control-group">
+    <button class="ctrl-btn play" onclick="playStation(6)">▷</button>
+    <button class="ctrl-btn stop" onclick="stopStation(6)">□</button>
+    <input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(5, this.value)">
+  </div>
+</div>
+
+<div class="radio-channel" id="channel-7">
+   <div class="channel-id-group">
+	<div class="channel-id">07</div>
+	<div class="active-led"></div>
+   </div>
+
+<div class="station-label">Wrock</div>
+  <div class="control-group">
+    <button class="ctrl-btn play" onclick="playStation(7)">▷</button>
+    <button class="ctrl-btn stop" onclick="stopStation(7)">□</button>
+    <input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(5, this.value)">
+  </div>
+</div>
+
+<div class="radio-channel" id="channel-8">
+   <div class="channel-id-group">
+	<div class="channel-id">08</div>
+	<div class="active-led"></div>
+   </div>
+
+<div class="station-label">Love radio</div>
+  <div class="control-group">
+    <button class="ctrl-btn play" onclick="playStation(8)">▷</button>
+    <button class="ctrl-btn stop" onclick="stopStation(8)">□</button>
+    <input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(5, this.value)">
+  </div>
+</div>
+
+<div class="radio-channel" id="channel-9">
+   <div class="channel-id-group">
+	<div class="channel-id">09</div>
+	<div class="active-led"></div>
+   </div>
+
+<div class="station-label">Easy Rock</div>
+  <div class="control-group">
+    <button class="ctrl-btn play" onclick="playStation(9)">▷</button>
+    <button class="ctrl-btn stop" onclick="stopStation(9)">□</button>
+    <input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(5, this.value)">
+  </div>
 </div>
 
 </div>
+
 
 <script>
 // --- Station Data (Your Collected URLs) ---
+
 const stations = {
+
 1: {
 name: "RAYSLAND_RADIO // mngr Eugene G.", url: "https://stream.zeno.fm/z7fgtpslunjuv", type: "icecast" },
-3: {
-name: "LOVE_CLASSICS // Brazil based", url: "https://strm112.1.fm/loveclassics_mobile_mp3", type: "mp3" },
-4: {
-name: "RETRO_CEBU // mngr Alvin B.", url: "http://fr1.amfmph.com:8128/stream", type: "mp3" },
 2: {
+name: "LOVE_CLASSICS // Brazil based", url: "https://strm112.1.fm/loveclassics_mobile_mp3", type: "mp3" },
+3: {
+name: "RETRO_CEBU // mngr Alvin B.", url: "https://us2.amfmph.com/ssl/retrocebu?mp=/stream", type: "icecast" },
+4: {
 name: "SANO RADIO // mngr Nelson M.", url: "https://stream.zeno.fm/xj1zhrcwnkatv", type: "zeno" },
 5: {
-name: "IFM_RADIO // mngr Atty. Rufil B.", url: "https://magic.radioca.st/stream", type: "radiocast" }
-};
+name: "IFM_RADIO // mngr Atty. Rufil B.", url: "https://magic.radioca.st/stream", type: "radiocast" },
 
+6: {
+name: "Brigada News FM 90.7mhz", url: "http://18.141.67.248:8026/stream", type: "radiocast" },
+
+
+7: {
+name: "Wrock 96.3mhz", url: "https://wrockceb-iradioph.radioca.st/stream/1/", type: "radiocast" },
+
+
+
+8: {
+name: "Love Radio 97.9", url: "https://loveradiocebu.radioca.st/;", type: "icecast" },
+
+
+9: {
+name: "EasyRock 102.7", url: "https://easyrockcebu.radioca.st/;", type: "icecast" },
+}
 let currentActiveChannel = null;
 let audioContext = null;
 let analyser = null;
