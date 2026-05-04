@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,487 +5,791 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>EuGall Tactical Radio Dashboard</title>
 <link rel="icon" type="image/png" href="https://i.imgur.com/G5iM8qP.png">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
 :root {
-  --tactical-green: #00FF00; /* Neon/Tactical Green */
-  --tactical-green-dim: #007700;
-  --tactical-black: #1A1A1A; /* Dark Gray/Black */
-  --tactical-background: #000000;
-  --panel-border: 1px solid var(--tactical-green-dim);
+  --green: #00FF41;
+  --green-dim: #007722;
+  --green-glow: rgba(0,255,65,0.18);
+  --bg: #000000;
+  --card-text: #e0ffe0;
+  --amber: #FFB300;
 }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-margin: 0;
-padding: 0;
-background-color: var(--tactical-background);
-color: var(--tactical-green);
-font-family: 'Courier New', Courier, monospace; /* Monospaced font */
-display: flex;
-flex-direction: column;
-align-items: center;
-height: 100vh;
-overflow-x: hidden;
+  background: var(--bg);
+  color: var(--green);
+  font-family: 'Share Tech Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 30px;
 }
 
-/* --- Main Dashboard Area --- */
+/* Scanline overlay on whole page */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,0.13) 3px,
+    rgba(0,0,0,0.13) 4px
+  );
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* ── HEADER ── */
 #main-radio-console {
-width: 100%;
-max-width: 480px;
-padding: 10px;
-border-bottom: var(--panel-border);
-text-align: center;
+  width: 100%;
+  max-width: 480px;
+  padding: 16px 14px 10px;
+  border-bottom: 1px solid var(--green-dim);
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+}
+
+#header-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.05em;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: var(--green);
+  text-shadow: 0 0 12px var(--green), 0 0 30px var(--green-dim);
+  margin-bottom: 6px;
 }
 
 #frequency-display {
-font-size: 2em;
-letter-spacing: 2px;
-margin-bottom: 5px;
-text-shadow: 0 0 10px var(--tactical-green);
+  font-size: 0.82em;
+  letter-spacing: 1px;
+  color: var(--amber);
+  text-shadow: 0 0 8px var(--amber);
+  min-height: 1.2em;
+  margin-bottom: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
+/* Signal bars */
 #signal-bars {
-display: flex;
-justify-content: center;
-gap: 2px;
-margin-top: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 3px;
+  margin-bottom: 6px;
+  height: 20px;
 }
 
 .signal-bar {
-width: 10px;
-height: 15px;
-background-color: var(--tactical-green-dim);
-opacity: 0.3;
-transition: opacity 0.2s ease, height 0.2s ease;
+  width: 8px;
+  background: var(--green-dim);
+  opacity: 0.25;
+  border-radius: 1px;
+  transition: opacity 0.2s, box-shadow 0.2s;
 }
+
+.signal-bar:nth-child(1) { height: 6px; }
+.signal-bar:nth-child(2) { height: 9px; }
+.signal-bar:nth-child(3) { height: 12px; }
+.signal-bar:nth-child(4) { height: 16px; }
+.signal-bar:nth-child(5) { height: 19px; }
+.signal-bar:nth-child(6) { height: 20px; }
 
 .signal-bar.active {
-opacity: 1;
-box-shadow: 0 0 5px var(--tactical-green);
+  opacity: 1;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: barPulse 0.6s ease-in-out infinite alternate;
 }
 
-/* --- 5-Channel Vertical Stack --- */
+@keyframes barPulse {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+
+/* Visualizer */
+#visualizer-canvas {
+  width: 100%;
+  height: 45px;
+  margin-top: 4px;
+  background: #060f06;
+  border: 1px solid var(--green-dim);
+  border-radius: 3px;
+}
+
+/* ── CHANNEL STACK ── */
 #channel-stack {
-width: 100%;
-max-width: 480px;
-padding: 10px;
-display: flex;
-flex-direction: column;
-gap: 15px; /* Space between channels */
+  width: 100%;
+  max-width: 480px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
+/* Section label */
+.section-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62em;
+  letter-spacing: 3px;
+  color: var(--green-);
+  padding: 4px 0 2px;
+  border-bottom: 1px solid #0d2e0d;
+  margin-bottom: 2px;
+}
+
+/* ── CHANNEL CARD with PNG texture ── */
 .radio-channel {
-background-color: var(--tactical-black);
-border: var(--panel-border);
-padding: 10px;
-border-radius: 5px;
-display: grid;
-grid-template-columns: 40px 1fr auto;
-align-items: center;
-gap: 10px;
-transition: border-color 0.2s ease;
+  position: relative;
+  border: 1px solid var(--green-dim);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  cursor: pointer;
+}
+
+/* PNG texture layer on each card */
+.radio-channel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    url('https://www.transparenttextures.com/patterns/dark-exa.png');
+  background-size: 120px;
+  opacity: 0.45;
+  z-index: 0;
+  border-radius: 6px;
+}
+
+/* Dark tint on top of texture */
+.radio-channel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,20,5,0.82) 0%, rgba(0,10,2,0.90) 100%);
+  z-index: 1;
+  border-radius: 6px;
+}
+
+/* All card children must be above the overlays */
+.radio-channel > * {
+  position: relative;
+  z-index: 2;
 }
 
 .radio-channel.active {
-border-color: var(--tactical-green);
-box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+  border-color: var(--green);
+  box-shadow: 0 0 14px var(--green-glow), inset 0 0 18px rgba(0,255,65,0.05);
 }
 
+/* LED + channel ID */
 .channel-id-group {
-text-align: center;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
 }
 
 .channel-id {
-font-size: 0.8em;
-color: var(--tactical-green-dim);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.68em;
+  color: var(--green-dim);
+  letter-spacing: 1px;
 }
 
 .active-led {
-width: 8px;
-height: 8px;
-background-color: #333;
-border-radius: 50%;
-margin: 2px auto;
-transition: background-color 0.2s ease;
+  width: 9px;
+  height: 9px;
+  background: #0a1a0a;
+  border: 1px solid var(--green-dim);
+  border-radius: 50%;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .radio-channel.active .active-led {
-background-color: var(--tactical-green);
-box-shadow: 0 0 5px var(--tactical-green);
+  background: var(--green);
+  box-shadow: 0 0 7px var(--green), 0 0 14px var(--green);
+  animation: ledBlink 1s ease-in-out infinite alternate;
 }
 
+@keyframes ledBlink {
+  from { box-shadow: 0 0 5px var(--green); }
+  to   { box-shadow: 0 0 12px var(--green), 0 0 20px var(--green); }
+}
+
+/* Station name */
 .station-label {
-font-size: 1.1em;
-font-weight: bold;
-color: white;
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
+  font-size: 0.95em;
+  font-weight: bold;
+  color: var(--card-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 6px rgba(0,255,65,0.3);
 }
 
+.station-freq {
+  font-size: 0.65em;
+  color: var(--green-dim);
+  margin-top: 2px;
+  letter-spacing: 1px;
+}
+
+.station-info {
+  overflow: hidden;
+}
+
+/* Controls */
 .control-group {
-display: flex;
-align-items: center;
-gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .ctrl-btn {
-background: none;
-border: none;
-color: var(--tactical-green);
-font-size: 1.5em;
-cursor: pointer;
-padding: 5px;
-opacity: 0.7;
-transition: opacity 0.2s ease;
+  background: none;
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-size: 1em;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 3px;
+  opacity: 0.75;
+  transition: opacity 0.15s, border-color 0.15s, box-shadow 0.15s;
+  font-family: monospace;
+  line-height: 1;
 }
 
 .ctrl-btn:hover, .ctrl-btn:focus {
-opacity: 1;
-outline: none;
+  opacity: 1;
+  border-color: var(--green);
+  box-shadow: 0 0 6px var(--green-glow);
+  outline: none;
+}
+
+.ctrl-btn.stop-btn {
+  color: #ff4444;
+  border-color: #441111;
+}
+
+.ctrl-btn.stop-btn:hover {
+  border-color: #ff4444;
+  box-shadow: 0 0 6px rgba(255,68,68,0.3);
 }
 
 .vol-slider {
-width: 80px;
--webkit-appearance: none;
-background: var(--tactical-green-dim);
-height: 3px;
-outline: none;
-opacity: 0.7;
-transition: opacity 0.2s ease;
+  width: 70px;
+  -webkit-appearance: none;
+  background: var(--green-dim);
+  height: 2px;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  border-radius: 2px;
 }
 
 .vol-slider::-webkit-slider-thumb {
--webkit-appearance: none;
-appearance: none;
-width: 10px;
-height: 10px;
-background: var(--tactical-green);
-cursor: pointer;
-border-radius: 50%;
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  background: var(--green);
+  cursor: pointer;
+  border-radius: 50%;
+  box-shadow: 0 0 4px var(--green);
 }
 
-/* --- Audio Visualizer --- */
-#visualizer-canvas {
-width: 100%;
-height: 40px;
-margin-top: 10px;
-background-color: #111;
+/* Status tag */
+.status-tag {
+  font-size: 0.55em;
+  letter-spacing: 2px;
+  color: var(--green-dim);
+  margin-top: 3px;
+}
+
+.radio-channel.active .status-tag {
+  color: var(--green);
+  animation: blink 1.2s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Boot text */
+#boot-line {
+  font-size: 0.6em;
+  color: var(--green-dim);
+  letter-spacing: 2px;
+  padding: 6px 0 0;
+  text-align: center;
+  animation: fadeIn 2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 </style>
 </head>
 <body>
 
+<!-- HEADER CONSOLE -->
 <div id="main-radio-console">
-<div id="frequency-display">EuGall-RAD // COMM</div>
-<div id="signal-bars">
-<div class="signal-bar"></div>
-<div class="signal-bar"></div>
-<div class="signal-bar"></div>
-<div class="signal-bar"></div>
-<div class="signal-bar"></div>
-<div class="signal-bar"></div>
-</div>
-<canvas id="visualizer-canvas"></canvas>
+  <div id="header-title">▌ EuGall-RAD // COMM ▐</div>
+  <div id="frequency-display">◈ STANDBY — SELECT CHANNEL</div>
+  <div id="signal-bars">
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+  </div>
+  <canvas id="visualizer-canvas"></canvas>
+  <div id="boot-line">SYS_OK ◈ 9 CHANNELS LOADED ◈ CRYPTO-SECURE</div>
 </div>
 
+<!-- CHANNEL STACK -->
 <div id="channel-stack">
 
-<div class="radio-channel" id="channel-1">
-<div class="channel-id-group">
-<div class="channel-id">01</div>
-<div class="active-led"></div>
-</div>
-<div class="station-label">Raysland Radio</div>
-<div class="control-group">
-<button class="ctrl-btn play" onclick="playStation(1)">▷</button>
-<button class="ctrl-btn stop" onclick="stopStation(1)">□</button>
-<input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(1, this.value)">
-</div>
-</div>
+  <div class="section-label">▸ PH Station</div>
 
-<div class="radio-channel" id="channel-2">
-<div class="channel-id-group">
-<div class="channel-id">02</div>
-<div class="active-led"></div>
-</div>
-<div class="station-label">Love Classic</div>
-<div class="control-group">
-<button class="ctrl-btn play" onclick="playStation(2)">▷</button>
-<button class="ctrl-btn stop" onclick="stopStation(2)">□</button>
-<input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(2, this.value)">
-</div>
-</div>
-
-<div class="radio-channel" id="channel-3">
-<div class="channel-id-group">
-<div class="channel-id">03</div>
-<div class="active-led"></div>
-</div>
-<div class="station-label">Retro Cebu
-</div>
-<div class="control-group">
-<button class="ctrl-btn play" onclick="playStation(3)">▷</button>
-<button class="ctrl-btn stop" onclick="stopStation(3)">□</button>
-<input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(3, this.value)">
-</div>
-</div>
-
-<div class="radio-channel" id="channel-4">
-<div class="channel-id-group">
-<div class="channel-id">04</div>
-<div class="active-led"></div>
-</div>
-<div class="station-label">Sano Radio
-</div>
-<div class="control-group">
-<button class="ctrl-btn play" onclick="playStation(4)">▷</button>
-<button class="ctrl-btn stop" onclick="stopStation(4)">□</button>
-<input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(4, this.value)">
-</div>
-</div>
-
-<div class="radio-channel" id="channel-5">
-<div class="channel-id-group">
-<div class="channel-id">05</div>
-<div class="active-led"></div>
-</div>
-
-<div class="station-label">IFM Radio</div>
-<div class="control-group">
-<button class="ctrl-btn play" onclick="playStation(5)">▷</button>
-<button class="ctrl-btn stop" onclick="stopStation(5)">□</button>
-<input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(5, this.value)">
-</div>
-
-</div>
-
-
-<div class="radio-channel" id="channel-6">
-   <div class="channel-id-group">
-	<div class="channel-id">06</div>
-	<div class="active-led"></div>
-   </div>
-
-<div class="station-label">Brigada News FM</div>
-  <div class="control-group">
-    <button class="ctrl-btn play" onclick="playStation(6)">▷</button>
-    <button class="ctrl-btn stop" onclick="stopStation(6)">□</button>
-    <input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(5, this.value)">
+  <div class="radio-channel" id="channel-1">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·01</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Raysland Radio</div>
+      <div class="station-freq">mngr Eugene G.</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(1)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(1)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(1, this.value)">
+    </div>
   </div>
-</div>
 
-<div class="radio-channel" id="channel-7">
-   <div class="channel-id-group">
-	<div class="channel-id">07</div>
-	<div class="active-led"></div>
-   </div>
-
-<div class="station-label">Wrock</div>
-  <div class="control-group">
-    <button class="ctrl-btn play" onclick="playStation(7)">▷</button>
-    <button class="ctrl-btn stop" onclick="stopStation(7)">□</button>
-    <input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(5, this.value)">
+  <div class="radio-channel" id="channel-2">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·02</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Love Classic</div>
+      <div class="station-freq">Brazil Based</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(2)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(2)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(2, this.value)">
+    </div>
   </div>
-</div>
 
-<div class="radio-channel" id="channel-8">
-   <div class="channel-id-group">
-	<div class="channel-id">08</div>
-	<div class="active-led"></div>
-   </div>
-
-<div class="station-label">Love radio</div>
-  <div class="control-group">
-    <button class="ctrl-btn play" onclick="playStation(8)">▷</button>
-    <button class="ctrl-btn stop" onclick="stopStation(8)">□</button>
-    <input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(5, this.value)">
+  <div class="radio-channel" id="channel-3">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·03</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Retro Cebu</div>
+      <div class="station-freq">mngr Alvin B.</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(3)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(3)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(3, this.value)">
+    </div>
   </div>
-</div>
 
-<div class="radio-channel" id="channel-9">
-   <div class="channel-id-group">
-	<div class="channel-id">09</div>
-	<div class="active-led"></div>
-   </div>
-
-<div class="station-label">Easy Rock</div>
-  <div class="control-group">
-    <button class="ctrl-btn play" onclick="playStation(9)">▷</button>
-    <button class="ctrl-btn stop" onclick="stopStation(9)">□</button>
-    <input type="range" class="vol-slider" min="0" max="1" step="0.1" value="0.8" oninput="setVolume(5, this.value)">
+  <div class="radio-channel" id="channel-4">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·04</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Sano Radio</div>
+      <div class="station-freq">mngr Nelson M.</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(4)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(4)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(4, this.value)">
+    </div>
   </div>
-</div>
+
+  <div class="radio-channel" id="channel-5">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·05</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">IFM Radio</div>
+      <div class="station-freq">mngr Atty. Rufil B.</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(5)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(5)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(5, this.value)">
+    </div>
+  </div>
+<!--
+  <div class="section-label">▸ PUBLIC BROADCAST</div>
+-->
+  <div class="radio-channel" id="channel-6">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·06</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Brigada News FM</div>
+      <div class="station-freq">90.7 MHz</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(6)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(6)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(6, this.value)">
+    </div>
+  </div>
+
+  <div class="radio-channel" id="channel-7">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·07</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Wrock</div>
+      <div class="station-freq">96.3 MHz</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(7)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(7)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(7, this.value)">
+    </div>
+  </div>
+
+  <div class="radio-channel" id="channel-8">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·08</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Love Radio</div>
+      <div class="station-freq">97.9 MHz</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(8)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(8)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(8, this.value)">
+    </div>
+  </div>
+
+  <div class="radio-channel" id="channel-9">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·09</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Easy Rock</div>
+      <div class="station-freq">102.7 MHz</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(9)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(9)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(9, this.value)">
+    </div>
+  </div>
+
+<div class="section-label">International</div>
+
+<div class="radio-channel" id="channel-10">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·10</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Smooth Jass</div>
+      <div class="station-freq">Online</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(10)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(10)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(10, this.value)">
+    </div>
+  </div>
+  
+  <div class="radio-channel" id="channel-11">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·11</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Bosa Nova</div>
+      <div class="station-freq">Online</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(11)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(11)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(11, this.value)">
+    </div>
+  </div>
+  
+  <div class="radio-channel" id="channel-12">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·12</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Beloved Ballads</div>
+      <div class="station-freq">Online</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(12)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(12)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(12, this.value)">
+    </div>
+  </div>
+  
+  <div class="radio-channel" id="channel-13">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·13</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">70s Best</div>
+      <div class="station-freq">Online</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(13)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(13)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(13, this.value)">
+    </div>
+  </div>
+  
+  <div class="radio-channel" id="channel-14">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·14</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">80s Best</div>
+      <div class="station-freq">Online</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(14)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(14)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(14, this.value)">
+    </div>
+  </div>
+  
+  <div class="radio-channel" id="channel-15">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·15</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">90s Best</div>
+      <div class="station-freq">Online</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(15)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(15)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(15, this.value)">
+    </div>
+  </div>
+  
+  <div class="radio-channel" id="channel-16">
+    <div class="channel-id-group">
+      <div class="channel-id">CH·16</div>
+      <div class="active-led"></div>
+    </div>
+    <div class="station-info">
+      <div class="station-label">Y2K</div>
+      <div class="station-freq">Online</div>
+      <div class="status-tag">● LIVE</div>
+    </div>
+    <div class="control-group">
+      <button class="ctrl-btn" onclick="playStation(16)">▶</button>
+      <button class="ctrl-btn stop-btn" onclick="stopStation(16)">■</button>
+      <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(16, this.value)">
+    </div>
+  </div>
 
 </div>
-
 
 <script>
-// --- Station Data (Your Collected URLs) ---
-
 const stations = {
+  1: { name: "RAYSLAND_RADIO // mngr Eugene G.", url: "https://stream.zeno.fm/z7fgtpslunjuv" },
+  2: { name: "LOVE_CLASSICS // Brazil Based",    url: "https://strm112.1.fm/loveclassics_mobile_mp3" },
+  3: { name: "RETRO_CEBU // mngr Alvin B.",      url: "https://us2.amfmph.com/ssl/retrocebu?mp=/stream" },
+  4: { name: "SANO RADIO // mngr Nelson M.",     url: "https://stream.zeno.fm/xj1zhrcwnkatv" },
+  5: { name: "IFM_RADIO // mngr Atty. Rufil B.", url: "https://magic.radioca.st/stream" },
+  6: { name: "Brigada News FM 90.7MHz",          url: "http://18.141.67.248:8026/stream" },
+  7: { name: "Wrock 96.3MHz",                    url: "https://wrockceb-iradioph.radioca.st/stream/1/" },
+  8: { name: "Love Radio 97.9",                  url: "https://loveradiocebu.radioca.st/;" },
+  9: { name: "EasyRock 102.7",                   url: "https://easyrockcebu.radioca.st/;" },
+  
+  10: { name: "Smooth Jazz",                   url: "https://strm112.1.fm/smoothjazz_mobile_mp3?aw_0_req.gdpr=true" },
+  
+  11: { name: "Bosa Nova",                   url: "https://strm112.1.fm/bossanova_mobile_mp3?aw_0_req.gdpr=true" },
+  
+  12: { name: "Beloved Ballads",                   url: "https://strm112.1.fm/onelive_mobile_mp3?aw_0_req.gdpr=true" },
+  
+  13: { name: "70s Best",                   url: "https://strm112.1.fm/70s_mobile_mp3?aw_0_req.gdpr=true" },
+  
+14: { name: "80s Best",                   url: "https://strm112.1.fm/magic80_mobile_mp3?aw_0_req.gdpr=true" },
 
-1: {
-name: "RAYSLAND_RADIO // mngr Eugene G.", url: "https://stream.zeno.fm/z7fgtpslunjuv", type: "icecast" },
-2: {
-name: "LOVE_CLASSICS // Brazil based", url: "https://strm112.1.fm/loveclassics_mobile_mp3", type: "mp3" },
-3: {
-name: "RETRO_CEBU // mngr Alvin B.", url: "https://us2.amfmph.com/ssl/retrocebu?mp=/stream", type: "icecast" },
-4: {
-name: "SANO RADIO // mngr Nelson M.", url: "https://stream.zeno.fm/xj1zhrcwnkatv", type: "zeno" },
-5: {
-name: "IFM_RADIO // mngr Atty. Rufil B.", url: "https://magic.radioca.st/stream", type: "radiocast" },
+15: { name: "90s Best",                   url: "https://strm112.1.fm/90s_mobile_mp3?aw_0_req.gdpr=true" },   
+16: { name: "Y2K", url: "https://strm112.1.fm/hits2000_mobile_mp3?aw_0_req.gdpr=true" },
+  
+};
 
-6: {
-name: "Brigada News FM 90.7mhz", url: "http://18.141.67.248:8026/stream", type: "radiocast" },
-
-
-7: {
-name: "Wrock 96.3mhz", url: "https://wrockceb-iradioph.radioca.st/stream/1/", type: "radiocast" },
-
-
-
-8: {
-name: "Love Radio 97.9", url: "https://loveradiocebu.radioca.st/;", type: "icecast" },
-
-
-9: {
-name: "EasyRock 102.7", url: "https://easyrockcebu.radioca.st/;", type: "icecast" },
-}
 let currentActiveChannel = null;
 let audioContext = null;
 let analyser = null;
 let sourceNode = null;
 let dataArray = null;
+let animFrameId = null;
 
 const freqDisplay = document.getElementById("frequency-display");
-const signalBars = document.querySelectorAll(".signal-bar");
-const canvas = document.getElementById("visualizer-canvas");
-const ctx = canvas.getContext("2d");
+const signalBars  = document.querySelectorAll(".signal-bar");
+const canvas      = document.getElementById("visualizer-canvas");
+const ctx         = canvas.getContext("2d");
 
-// --- Core Functions (Play, Stop, Volume) ---
+function resizeCanvas() {
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
 function playStation(channelId) {
-// 1. If another channel is active, stop it
-if (currentActiveChannel && currentActiveChannel !== channelId) {
-stopStation(currentActiveChannel);
-}
+  if (currentActiveChannel && currentActiveChannel !== channelId) {
+    stopStation(currentActiveChannel);
+  }
+  currentActiveChannel = channelId;
+  const stationData   = stations[channelId];
+  const channelEl     = document.getElementById(`channel-${channelId}`);
 
-// 2. Set new current active channel
-currentActiveChannel = channelId;
-const stationData = stations[channelId];
-const channelElement = document.getElementById(`channel-${channelId}`);
+  freqDisplay.textContent = `◈ TUNED: ${stationData.name}`;
+  activateSignalBars(true);
+  channelEl.classList.add("active");
 
-// 3. Update the Main Console (Frequency Display)
-freqDisplay.textContent = stationData.name;
-activateSignalBars(true);
+  const audio = document.createElement("audio");
+  audio.id    = `audio-channel-${channelId}`;
+  audio.src   = stationData.url;
+  audio.crossOrigin = "anonymous";
+  document.body.appendChild(audio);
 
-// 4. Update UI (Visual Active Indicators)
-channelElement.classList.add("active");
+  audio.play().catch(() => {
+    freqDisplay.textContent = "⚠ ERR: SIGNAL LOST";
+    activateSignalBars(false);
+  });
 
-// 5. Start the Audio
-// We use a clean way to manage the 'restricted' or complex nature of some streams
-const audioElement = document.createElement("audio");
-audioElement.id = `audio-channel-${channelId}`;
-audioElement.src = stationData.url;
-audioElement.crossOrigin = "anonymous"; // Important for visualizer
-document.body.appendChild(audioElement);
-
-audioElement.play().catch(error => {
-console.error("Audio play failed:", error);
-freqDisplay.textContent = "ERR_CONNECTION";
-activateSignalBars(false);
-});
-
-// 6. Hook up the Audio Visualizer
-startVisualizer(audioElement);
+  startVisualizer(audio);
 }
 
 function stopStation(channelId) {
-if (currentActiveChannel !== channelId) return;
+  if (currentActiveChannel !== channelId) return;
 
-// 1. Stop the audio
-const audioElement = document.getElementById(`audio-channel-${channelId}`);
-if (audioElement) {
-audioElement.pause();
-audioElement.remove(); // Clean up the DOM element
-}
+  const audio = document.getElementById(`audio-channel-${channelId}`);
+  if (audio) { audio.pause(); audio.remove(); }
 
-// 2. Update the Main Console
-freqDisplay.textContent = "EuGall-RAD // STANDBY";
-activateSignalBars(false);
+  freqDisplay.textContent = "◈ STANDBY — SELECT CHANNEL";
+  activateSignalBars(false);
 
-// 3. Update UI
-const channelElement = document.getElementById(`channel-${channelId}`);
-if (channelElement) {
-channelElement.classList.remove("active");
-}
+  const channelEl = document.getElementById(`channel-${channelId}`);
+  if (channelEl) channelEl.classList.remove("active");
 
-currentActiveChannel = null;
+  currentActiveChannel = null;
 
-// 4. Stop visualization
-if (audioContext) audioContext.close();
-audioContext = null;
+  if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+  if (audioContext) { audioContext.close(); audioContext = null; }
+
+  // Clear canvas
+  ctx.fillStyle = "#060f06";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function setVolume(channelId, value) {
-const audioElement = document.getElementById(`audio-channel-${channelId}`);
-if (audioElement) {
-audioElement.volume = value;
+  const audio = document.getElementById(`audio-channel-${channelId}`);
+  if (audio) audio.volume = parseFloat(value);
 }
-}
-
-// --- Decoration: Signal Strength & Visualizer ---
 
 function activateSignalBars(active) {
-signalBars.forEach(bar => {
-if (active) {
-bar.classList.add("active");
-} else {
-bar.classList.remove("active");
-}
-});
+  signalBars.forEach(bar => bar.classList.toggle("active", active));
 }
 
 function startVisualizer(audioElement) {
-if (!audioContext) {
-audioContext = new (window.AudioContext || window.webkitAudioContext)();
-}
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  analyser    = audioContext.createAnalyser();
+  sourceNode  = audioContext.createMediaElementSource(audioElement);
+  sourceNode.connect(analyser);
+  analyser.connect(audioContext.destination);
+  analyser.fftSize = 128;
 
-analyser = audioContext.createAnalyser();
-sourceNode = audioContext.createMediaElementSource(audioElement);
-sourceNode.connect(analyser);
-analyser.connect(audioContext.destination);
+  const bufferLength = analyser.frequencyBinCount;
+  dataArray = new Uint8Array(bufferLength);
 
-analyser.fftSize = 64;
-const bufferLength = analyser.frequencyBinCount;
-dataArray = new Uint8Array(bufferLength);
+  function draw() {
+    if (!currentActiveChannel) return;
+    animFrameId = requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(dataArray);
 
-function draw() {
-if (!currentActiveChannel) return; // Stop drawing if stopped
+    ctx.fillStyle = "#060f06";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-requestAnimationFrame(draw);
-analyser.getByteFrequencyData(dataArray);
+    const barW = (canvas.width / bufferLength) * 1.6;
+    let x = 0;
 
-ctx.fillStyle = "rgb(17, 17, 17)"; // Dark bg
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-const barWidth = (canvas.width / bufferLength) * 1.5;
-let barHeight;
-let x = 0;
-
-for (let i = 0; i < bufferLength; i++) {
-barHeight = dataArray[i];
-
-ctx.fillStyle = `rgb(0, ${Math.min(255, barHeight + 50)}, 0)`; // Varies green
-ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
-
-x += barWidth + 1;
-}
-}
-draw();
+    for (let i = 0; i < bufferLength; i++) {
+      const v = dataArray[i];
+      const h = (v / 255) * canvas.height;
+      const g = Math.min(255, v + 60);
+      ctx.fillStyle = `rgba(0, ${g}, 40, 0.9)`;
+      ctx.shadowColor = "#00FF41";
+      ctx.shadowBlur  = 4;
+      ctx.fillRect(x, canvas.height - h, barW, h);
+      x += barW + 1;
+    }
+  }
+  draw();
 }
 </script>
-</div>
 </body>
 </html>
